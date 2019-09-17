@@ -119,6 +119,7 @@ for family in instructions['kems'] + instructions['sigs']:
 replacer('config/features.m4', instructions, '#####')
 replacer('configure.ac', instructions, '#####')
 replacer('Makefile.am', instructions, '#####')
+replacer('scripts/arm-run-tests-qemu.sh', instructions, '#####')
 replacer('src/kem/kem.c', instructions, '/////')
 replacer('src/kem/kem.h', instructions, '/////')
 replacer('src/sig/sig.c', instructions, '/////')

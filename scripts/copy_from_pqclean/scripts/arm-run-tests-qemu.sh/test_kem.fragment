@@ -1,0 +1,3 @@
+{% for family in instructions['kems'] %}{% for scheme in family['schemes'] %}
+qemu-arm -cpu cortex-a8 -L /usr/arm-linux-gnueabi tests/test_kem {{ scheme['pretty_name_full'] }}{% endfor %}{% endfor %}
+

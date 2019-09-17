@@ -1,0 +1,3 @@
+{% for family in instructions['sigs'] %}{% for scheme in family['schemes'] %}
+{% if scheme['pretty_name_full'][:7] == 'SPHINCS' %}# {% endif %}qemu-arm -cpu cortex-a8 -L /usr/arm-linux-gnueabi tests/test_sig {{ scheme['pretty_name_full'] }}{% endfor %}{% endfor %}
+
