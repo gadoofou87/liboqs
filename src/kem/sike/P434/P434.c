@@ -4,9 +4,20 @@
 * Abstract: supersingular isogeny parameters and generation of functions for P434
 *********************************************************************************************/
 
+#include <oqs/rand.h>
 #include "../oqs_namespace_sike.h"
 #include "P434_api.h"
 #include "P434_internal.h"
+
+// defines moved from P434_api.h
+#define CRYPTO_SECRETKEYBYTES 374 // MSG_BYTES + SECRETKEY_B_BYTES + CRYPTO_PUBLICKEYBYTES bytes
+#define CRYPTO_PUBLICKEYBYTES 330
+#define CRYPTO_BYTES 16
+#define CRYPTO_CIPHERTEXTBYTES 346 // CRYPTO_PUBLICKEYBYTES + MSG_BYTES bytes
+#define SIDH_SECRETKEYBYTES_A 27
+#define SIDH_SECRETKEYBYTES_B 28
+#define SIDH_PUBLICKEYBYTES 330
+#define SIDH_BYTES 110
 
 // Encoding of field elements, elements over Z_order, elements over GF(p^2) and elliptic curve points:
 // --------------------------------------------------------------------------------------------------
@@ -20,12 +31,12 @@
 // Curve isogeny system "SIDHp434". Base curve: Montgomery curve By^2 = Cx^3 + Ax^2 + Cx defined over GF(p434^2), where A=6, B=1, C=1 and p434 = 2^216*3^137-1
 //
 
-static const uint64_t p434[NWORDS64_FIELD] = {0xFFFFFFFFFFFFFFFF, 0xFFFFFFFFFFFFFFFF, 0xFFFFFFFFFFFFFFFF, 0xFDC1767AE2FFFFFF,
-                                              0x7BC65C783158AEA3, 0x6CFC5FD681C52056, 0x0002341F27177344};
-static const uint64_t p434p1[NWORDS64_FIELD] = {0x0000000000000000, 0x0000000000000000, 0x0000000000000000, 0xFDC1767AE3000000,
-                                                0x7BC65C783158AEA3, 0x6CFC5FD681C52056, 0x0002341F27177344};
-static const uint64_t p434x2[NWORDS64_FIELD] = {0xFFFFFFFFFFFFFFFE, 0xFFFFFFFFFFFFFFFF, 0xFFFFFFFFFFFFFFFF, 0xFB82ECF5C5FFFFFF,
-                                                0xF78CB8F062B15D47, 0xD9F8BFAD038A40AC, 0x0004683E4E2EE688};
+const uint64_t p434[NWORDS64_FIELD] = {0xFFFFFFFFFFFFFFFF, 0xFFFFFFFFFFFFFFFF, 0xFFFFFFFFFFFFFFFF, 0xFDC1767AE2FFFFFF,
+                                       0x7BC65C783158AEA3, 0x6CFC5FD681C52056, 0x0002341F27177344};
+const uint64_t p434p1[NWORDS64_FIELD] = {0x0000000000000000, 0x0000000000000000, 0x0000000000000000, 0xFDC1767AE3000000,
+                                         0x7BC65C783158AEA3, 0x6CFC5FD681C52056, 0x0002341F27177344};
+const uint64_t p434x2[NWORDS64_FIELD] = {0xFFFFFFFFFFFFFFFE, 0xFFFFFFFFFFFFFFFF, 0xFFFFFFFFFFFFFFFF, 0xFB82ECF5C5FFFFFF,
+                                         0xF78CB8F062B15D47, 0xD9F8BFAD038A40AC, 0x0004683E4E2EE688};
 // Order of Alice's subgroup
 static const uint64_t Alice_order[NWORDS64_ORDER] = {0x0000000000000000, 0x0000000000000000, 0x0000000000000000, 0x0000000001000000};
 // Order of Bob's subgroup
@@ -99,9 +110,9 @@ static const unsigned int strat_Bob[MAX_Bob - 1] = {
 #define fp2inv_mont fp2inv434_mont
 #define fp2inv_mont_bingcd fp2inv434_mont_bingcd
 #define fpequal_non_constant_time fpequal434_non_constant_time
-#define mp_add_asm mp_add434_asm
-#define mp_subaddx2_asm mp_subadd434x2_asm
-#define mp_dblsubx2_asm mp_dblsub434x2_asm
+#define mp_add_asm oqs_kem_sike_mp_add434_asm
+#define mp_subaddx2_asm oqs_kem_sike_mp_subadd434x2_asm
+#define mp_dblsubx2_asm oqs_kem_sike_mp_dblsub434x2_asm
 #define crypto_kem_keypair OQS_KEM_sike_p434_keypair
 #define crypto_kem_enc OQS_KEM_sike_p434_encaps
 #define crypto_kem_dec OQS_KEM_sike_p434_decaps
@@ -114,7 +125,6 @@ static const unsigned int strat_Bob[MAX_Bob - 1] = {
 
 #if defined(X86_64)
 #include "AMD64/fp_x64.c"
-// #include "AMD64/fp_x64_asm.S" FIXMEOQS
 #else
 #include "generic/fp_generic.c"
 #endif

@@ -4,9 +4,20 @@
 * Abstract: supersingular isogeny parameters and generation of functions for P751
 *********************************************************************************************/
 
+#include <oqs/rand.h>
 #include "../oqs_namespace_sike.h"
 #include "P751_api.h"
 #include "P751_internal.h"
+
+// defines moved from P751_api.h
+#define CRYPTO_SECRETKEYBYTES 644 // MSG_BYTES + SECRETKEY_B_BYTES + CRYPTO_PUBLICKEYBYTES bytes
+#define CRYPTO_PUBLICKEYBYTES 564
+#define CRYPTO_BYTES 32
+#define CRYPTO_CIPHERTEXTBYTES 596 // CRYPTO_PUBLICKEYBYTES + MSG_BYTES bytes
+#define SIDH_SECRETKEYBYTES_A 47
+#define SIDH_SECRETKEYBYTES_B 48
+#define SIDH_PUBLICKEYBYTES 564
+#define SIDH_BYTES 188
 
 // Encoding of field elements, elements over Z_order, elements over GF(p^2) and elliptic curve points:
 // --------------------------------------------------------------------------------------------------
@@ -20,12 +31,12 @@
 // Curve isogeny system "SIDHp751". Base curve: Montgomery curve By^2 = Cx^3 + Ax^2 + Cx defined over GF(p751^2), where A=6, B=1, C=1 and p751 = 2^372*3^239-1
 //
 
-static const uint64_t p751[NWORDS64_FIELD] = {0xFFFFFFFFFFFFFFFF, 0xFFFFFFFFFFFFFFFF, 0xFFFFFFFFFFFFFFFF, 0xFFFFFFFFFFFFFFFF, 0xFFFFFFFFFFFFFFFF, 0xEEAFFFFFFFFFFFFF,
-                                              0xE3EC968549F878A8, 0xDA959B1A13F7CC76, 0x084E9867D6EBE876, 0x8562B5045CB25748, 0x0E12909F97BADC66, 0x00006FE5D541F71C};
-static const uint64_t p751p1[NWORDS64_FIELD] = {0x0000000000000000, 0x0000000000000000, 0x0000000000000000, 0x0000000000000000, 0x0000000000000000, 0xEEB0000000000000,
-                                                0xE3EC968549F878A8, 0xDA959B1A13F7CC76, 0x084E9867D6EBE876, 0x8562B5045CB25748, 0x0E12909F97BADC66, 0x00006FE5D541F71C};
-static const uint64_t p751x2[NWORDS64_FIELD] = {0xFFFFFFFFFFFFFFFE, 0xFFFFFFFFFFFFFFFF, 0xFFFFFFFFFFFFFFFF, 0xFFFFFFFFFFFFFFFF, 0xFFFFFFFFFFFFFFFF, 0xDD5FFFFFFFFFFFFF,
-                                                0xC7D92D0A93F0F151, 0xB52B363427EF98ED, 0x109D30CFADD7D0ED, 0x0AC56A08B964AE90, 0x1C25213F2F75B8CD, 0x0000DFCBAA83EE38};
+const uint64_t p751[NWORDS64_FIELD] = {0xFFFFFFFFFFFFFFFF, 0xFFFFFFFFFFFFFFFF, 0xFFFFFFFFFFFFFFFF, 0xFFFFFFFFFFFFFFFF, 0xFFFFFFFFFFFFFFFF, 0xEEAFFFFFFFFFFFFF,
+                                       0xE3EC968549F878A8, 0xDA959B1A13F7CC76, 0x084E9867D6EBE876, 0x8562B5045CB25748, 0x0E12909F97BADC66, 0x00006FE5D541F71C};
+const uint64_t p751p1[NWORDS64_FIELD] = {0x0000000000000000, 0x0000000000000000, 0x0000000000000000, 0x0000000000000000, 0x0000000000000000, 0xEEB0000000000000,
+                                         0xE3EC968549F878A8, 0xDA959B1A13F7CC76, 0x084E9867D6EBE876, 0x8562B5045CB25748, 0x0E12909F97BADC66, 0x00006FE5D541F71C};
+const uint64_t p751x2[NWORDS64_FIELD] = {0xFFFFFFFFFFFFFFFE, 0xFFFFFFFFFFFFFFFF, 0xFFFFFFFFFFFFFFFF, 0xFFFFFFFFFFFFFFFF, 0xFFFFFFFFFFFFFFFF, 0xDD5FFFFFFFFFFFFF,
+                                         0xC7D92D0A93F0F151, 0xB52B363427EF98ED, 0x109D30CFADD7D0ED, 0x0AC56A08B964AE90, 0x1C25213F2F75B8CD, 0x0000DFCBAA83EE38};
 // Order of Alice's subgroup
 static const uint64_t Alice_order[NWORDS64_ORDER] = {0x0000000000000000, 0x0000000000000000, 0x0000000000000000, 0x0000000000000000, 0x0000000000000000, 0x0010000000000000};
 // Order of Bob's subgroup
@@ -109,9 +120,9 @@ static const unsigned int strat_Bob[MAX_Bob - 1] = {
 #define fp2inv_mont fp2inv751_mont
 #define fp2inv_mont_bingcd fp2inv751_mont_bingcd
 #define fpequal_non_constant_time fpequal751_non_constant_time
-#define mp_add_asm mp_add751_asm
-#define mp_subaddx2_asm mp_subadd751x2_asm
-#define mp_dblsubx2_asm mp_dblsub751x2_asm
+#define mp_add_asm oqs_kem_sike_mp_add751_asm
+#define mp_subaddx2_asm oqs_kem_sike_mp_subadd751x2_asm
+#define mp_dblsubx2_asm oqs_kem_sike_mp_dblsub751x2_asm
 #define crypto_kem_keypair OQS_KEM_sike_p751_keypair
 #define crypto_kem_enc OQS_KEM_sike_p751_encaps
 #define crypto_kem_dec OQS_KEM_sike_p751_decaps
@@ -124,7 +135,6 @@ static const unsigned int strat_Bob[MAX_Bob - 1] = {
 
 #if defined(X86_64)
 #include "AMD64/fp_x64.c"
-// #include "AMD64/fp_x64_asm.S" FIXMEOQS
 #elif defined(ARM64)
 #include "ARM64/fp_arm64.c"
 #else

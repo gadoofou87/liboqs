@@ -4,10 +4,21 @@
 * Abstract: supersingular isogeny parameters and generation of functions for P751_compressed
 *********************************************************************************************/
 
+#include <oqs/rand.h>
 #include "../oqs_namespace_sike_compressed.h"
 #include "P751_compressed_api.h"
 #define COMPRESS
 #include "P751_internal.h"
+
+// defines moved from P751_compressed_api.h
+#define CRYPTO_SECRETKEYBYTES 413 // MSG_BYTES + SECRETKEY_A_BYTES + CRYPTO_PUBLICKEYBYTES bytes
+#define CRYPTO_PUBLICKEYBYTES 334 // 3*ORDER_B_ENCODED_BYTES + FP2_ENCODED_BYTES + 2 bytes for shared elligator
+#define CRYPTO_BYTES 32
+#define CRYPTO_CIPHERTEXTBYTES 363 // COMPRESSED_CHUNK_CT + MSG_BYTES bytes
+#define SIDH_SECRETKEYBYTES_A 47
+#define SIDH_SECRETKEYBYTES_B 48
+#define SIDH_PUBLICKEYBYTES 334
+#define SIDH_BYTES 188
 
 // Encoding of field elements, elements over Z_order, elements over GF(p^2) and elliptic curve points:
 // --------------------------------------------------------------------------------------------------
@@ -361,9 +372,9 @@ static const uint64_t v_3_torsion[20][2 * NWORDS64_FIELD] =
 #define fp2inv_mont fp2inv751_mont
 #define fp2inv_mont_bingcd fp2inv751_mont_bingcd
 #define fpequal_non_constant_time fpequal751_non_constant_time
-#define mp_add_asm mp_add751_asm
-#define mp_subaddx2_asm mp_subadd751x2_asm
-#define mp_dblsubx2_asm mp_dblsub751x2_asm
+#define mp_add_asm oqs_kem_sike_mp_add751_asm
+#define mp_subaddx2_asm oqs_kem_sike_mp_subadd751x2_asm
+#define mp_dblsubx2_asm oqs_kem_sike_mp_dblsub751x2_asm
 #define crypto_kem_keypair OQS_KEM_sike_p751_compressed_keypair
 #define crypto_kem_enc OQS_KEM_sike_p751_compressed_encaps
 #define crypto_kem_dec OQS_KEM_sike_p751_compressed_decaps
@@ -376,7 +387,6 @@ static const uint64_t v_3_torsion[20][2 * NWORDS64_FIELD] =
 
 #if defined(X86_64)
 #include "AMD64/fp_x64.c"
-// #include "AMD64/fp_x64_asm.S" FIXMEOQS
 #elif defined(ARM64)
 #include "ARM64/fp_arm64.c"
 #else
