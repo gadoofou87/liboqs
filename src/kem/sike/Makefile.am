@@ -13,7 +13,7 @@ libkemsike_la_SOURCES += P434/AMD64/fp_x64_asm.S P503/AMD64/fp_x64_asm.S P610/AM
 SIKE_FLAGS += -D_AMD64_
 if USE_BMI2_INSTRUCTIONS
 # preprocessed assembly files (.S) are passed CPP flags
-AM_CPPFLAGS += -D_MULX_
+AM_CPPFLAGS += -D_MULX_ -D_ADX_
 endif #USE_BMI2_INSTRUCTIONS
 else
 if ARM
