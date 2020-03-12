@@ -1,9 +1,10 @@
 try_run(RUN_RESULT COMPILE_RESULT
-        "${CMAKE_BINARY_DIR}" "${PROJECT_SOURCE_DIR}/.CMake/list-cpu-extensions.c"
+        "${CMAKE_BINARY_DIR}" "${PROJECT_SOURCE_DIR}/.CMake/list_cpu_extensions.c"
         CMAKE_FLAGS
             -DINCLUDE_DIRECTORIES=${CPUFEATURES_INCLUDE_DIR}
         LINK_LIBRARIES CPUFEATURES
         RUN_OUTPUT_VARIABLE RUN_OUTPUT)
+message("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! ${RUN_OUTPUT}")
 foreach(CPU_EXTENSION ${RUN_OUTPUT})
     set(OQS_USE_${CPU_EXTENSION}_INSTRUCTIONS TRUE)
 endforeach()

@@ -7,7 +7,7 @@ set(OQS_VERSION_TEXT "0.2.1-dev")
 set(OQS_COMPILE_BUILD_TARGET "${CMAKE_SYSTEM_PROCESSOR}-${CMAKE_HOST_SYSTEM}")
 
 configure_file(CMakeLists.txt.in cpu_features-download/CMakeLists.txt)
-execute_process(COMMAND ${CMAKE_COMMAND} -G "${CMAKE_GENERATOR}" .
+execute_process(COMMAND ${CMAKE_COMMAND} -G ${CMAKE_GENERATOR} .
     RESULT_VARIABLE result
     WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/cpu_features-download )
 if(result)
@@ -26,6 +26,10 @@ find_library(CPUFEATURES_LIBRARY
     PATHS "${CMAKE_CURRENT_BINARY_DIR}/cpu_features-build")
 add_library(CPUFEATURES UNKNOWN IMPORTED GLOBAL)
 set_target_properties(CPUFEATURES PROPERTIES IMPORTED_LOCATION "${CPUFEATURES_LIBRARY}")
+
+if(BUILD_SHARED_LIBS AND (WIN32 OR MINGW OR MSYS OR CYGWIN))
+    set(ENV{PATH} "${CMAKE_CURRENT_BINARY_DIR}/cpu_features-build;$ENV{PATH}")
+endif()
 
 if(CMAKE_SYSTEM_PROCESSOR MATCHES "x86_64|amd64|AMD64")
     set(ARCH "x86_64")
