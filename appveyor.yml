@@ -12,10 +12,6 @@ branches:
 environment:
   matrix:
     - BUILD_SHARED: OFF
-      COMPILER: msvc2019
-    - BUILD_SHARED: ON
-      COMPILER: msvc2019
-    - BUILD_SHARED: OFF
       COMPILER: msys2
     - BUILD_SHARED: ON
       COMPILER: msys2
